@@ -14,9 +14,11 @@ class Settings(BaseSettings):
     secret_key: str = Field(default="development-secret-key-change-before-production", min_length=32)
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 7
-    backend_cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
-    first_admin_email: str = "admin@example.com"
+    backend_cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://stock-pilot-new-ver.vercel.app",
+    ]
     first_admin_password: str = "ChangeMe123!"
     upload_dir: str = "uploads"
 
