@@ -10,7 +10,12 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshPromise: Promise<string> | null = null;
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (typeof response.data === "string" && response.data.trim().startsWith("<!")) {
+      return Promise.reject(new Error("API server not reachable. Please configure VITE_API_URL or check your backend server."));
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
     if (error.response?.status !== 401 || !original || original._retried || original.url?.includes("/auth/")) {

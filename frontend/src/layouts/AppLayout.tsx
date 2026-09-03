@@ -29,7 +29,7 @@ export default function AppLayout() {
         <button className="lg:hidden" onClick={() => setOpen(true)}><Menu /></button><div className="ml-auto flex items-center gap-3">
           <button aria-label="Notifications" className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Bell className="size-5" /></button>
           <button aria-label="Toggle theme" className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setDark(!dark)}>{dark ? <Sun className="size-5" /> : <Moon className="size-5" />}</button>
-          <div className="hidden text-right sm:block"><div className="text-sm font-semibold">{user?.full_name}</div><div className="text-xs text-slate-500">{user?.role.name}</div></div>
+          <div className="hidden text-right sm:block"><div className="text-sm font-semibold">{user?.full_name}</div><div className="text-xs text-slate-500">{user?.role?.name ?? "User"}</div></div>
           <button aria-label="Log out" className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => dispatch(logout())}><LogOut className="size-5" /></button>
         </div>
       </header>
