@@ -9,7 +9,11 @@ import toast from "react-hot-toast";
 export default function DashboardPage() {
   const [data, setData] = useState<Dashboard>();
   useEffect(() => { api.get<Dashboard>("/dashboard").then((r) => setData(r.data)).catch((e) => toast.error(errorMessage(e))); }, []);
-  const money = (value: string | number) => new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(value));
+  const money = (value: string | number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+  }).format(Number(value));
   if (!data) return <><PageHeader title="Dashboard" /> <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[1,2,3,4].map((n) => <Skeleton key={n} />)}</div></>;
   const stats = [
     ["Total products", data.total_products, Package, "text-blue-600 bg-blue-50"],

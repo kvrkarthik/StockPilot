@@ -68,7 +68,7 @@ def seed_database(db: Session) -> None:
         )
 
     if not db.get(Setting, 1):
-        db.add(Setting(id=1))
+        db.add(Setting(id=1, currency="INR"))
 
     # Seed default product categories
     categories = [

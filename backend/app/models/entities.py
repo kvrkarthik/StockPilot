@@ -279,5 +279,5 @@ class Setting(Base, TimestampMixin):
     company_name: Mapped[str] = mapped_column(String(180), default="Smart Inventory")
     company_address: Mapped[str | None] = mapped_column(Text)
     tax_percentage: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=0)
-    currency: Mapped[str] = mapped_column(String(3), default="USD")
+    currency: Mapped[str] = mapped_column(String(3), default="INR")
     theme: Mapped[str] = mapped_column(String(20), default="system")
