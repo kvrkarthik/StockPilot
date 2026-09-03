@@ -7,17 +7,21 @@ import api, { errorMessage } from "../services/api";
 import type { Page, Product, Supplier } from "../types";
 
 type RecordRow = Record<string, any>;
-
 interface CustomerRow { id: number; name: string; email?: string; phone?: string; address?: string }
 
 export function ResourcePage({ title, endpoint, description }: { title: string; endpoint: string; description: string }) {
   const [rows, setRows] = useState<RecordRow[]>();
   const [open, setOpen] = useState(false);
+  const [showAddSupplierInline, setShowAddSupplierInline] = useState(false);
+  const [inlineSupplierName, setInlineSupplierName] = useState("");
+  const [inlineSupplierEmail, setInlineSupplierEmail] = useState("");
+  const [inlineSupplierPhone, setInlineSupplierPhone] = useState("");
+
   const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
   const [customersList, setCustomersList] = useState<CustomerRow[]>([]);
   const [productsList, setProductsList] = useState<Product[]>([]);
 
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<RecordRow>();
+  const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm<RecordRow>();
 
   const loadData = () => {
     api.get<Page<RecordRow> | RecordRow[]>(endpoint)
@@ -29,8 +33,7 @@ export function ResourcePage({ title, endpoint, description }: { title: string; 
     loadData();
   }, [endpoint]);
 
-  const handleOpenModal = async () => {
-    setOpen(true);
+  const fetchDependencies = async () => {
     try {
       if (endpoint === "/purchases") {
         const [supRes, prodRes] = await Promise.all([
@@ -52,10 +55,44 @@ export function ResourcePage({ title, endpoint, description }: { title: string; 
     }
   };
 
+  const handleOpenModal = async () => {
+    setOpen(true);
+    setShowAddSupplierInline(false);
+    await fetchDependencies();
+  };
+
+  const handleCreateQuickSupplier = async () => {
+    if (!inlineSupplierName.trim()) {
+      toast.error("Please enter supplier name");
+      return;
+    }
+    try {
+      const res = await api.post<Supplier>("/suppliers", {
+        name: inlineSupplierName,
+        email: inlineSupplierEmail || null,
+        phone: inlineSupplierPhone || null,
+      });
+      toast.success(`Supplier "${res.data.name}" created!`);
+      const updatedSupRes = await api.get<Page<Supplier>>("/suppliers");
+      setSuppliersList(updatedSupRes.data.items);
+      setValue("supplier_id", String(res.data.id));
+      setShowAddSupplierInline(false);
+      setInlineSupplierName("");
+      setInlineSupplierEmail("");
+      setInlineSupplierPhone("");
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
+
   const onSubmit = async (values: RecordRow) => {
     try {
       let payload = { ...values };
       if (endpoint === "/purchases") {
+        if (!values.supplier_id) {
+          toast.error("Please select or add a supplier");
+          return;
+        }
         payload = {
           supplier_id: Number(values.supplier_id),
           invoice_number: values.invoice_number || null,
@@ -177,15 +214,37 @@ export function ResourcePage({ title, endpoint, description }: { title: string; 
 
               {endpoint === "/purchases" && (
                 <>
-                  <label>
-                    <span className="label">Supplier</span>
-                    <select className="field" required {...register("supplier_id")}>
-                      <option value="">Select Supplier</option>
-                      {suppliersList.map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </label>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="label">Supplier</span>
+                      <button 
+                        type="button" 
+                        className="text-xs text-teal-600 font-semibold hover:underline" 
+                        onClick={() => setShowAddSupplierInline(!showAddSupplierInline)}
+                      >
+                        {showAddSupplierInline ? "← Back to select" : "+ Quick Add New Supplier"}
+                      </button>
+                    </div>
+
+                    {showAddSupplierInline ? (
+                      <div className="p-3 border border-teal-200 rounded-xl bg-teal-50/50 space-y-2 dark:bg-slate-800 dark:border-teal-800">
+                        <input className="field text-sm" placeholder="New Supplier Name *" value={inlineSupplierName} onChange={(e) => setInlineSupplierName(e.target.value)} />
+                        <input className="field text-sm" placeholder="Email (optional)" value={inlineSupplierEmail} onChange={(e) => setInlineSupplierEmail(e.target.value)} />
+                        <input className="field text-sm" placeholder="Phone (optional)" value={inlineSupplierPhone} onChange={(e) => setInlineSupplierPhone(e.target.value)} />
+                        <button type="button" className="btn-primary w-full text-xs py-1.5" onClick={handleCreateQuickSupplier}>
+                          Save Supplier
+                        </button>
+                      </div>
+                    ) : (
+                      <select className="field" required {...register("supplier_id")}>
+                        <option value="">{suppliersList.length === 0 ? "No suppliers found - Add one using link above" : "Select Supplier"}</option>
+                        {suppliersList.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
                   <label>
                     <span className="label">Product</span>
                     <select className="field" required {...register("product_id")}>
