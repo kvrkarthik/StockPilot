@@ -42,7 +42,12 @@ api.interceptors.response.use(
 );
 
 export function errorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
   if (axios.isAxiosError(error)) return error.response?.data?.detail ?? error.message;
+  if (typeof error === "object" && error !== null) {
+    if ("detail" in error && typeof (error as any).detail === "string") return (error as any).detail;
+    if ("message" in error && typeof (error as any).message === "string") return (error as any).message;
+  }
   return error instanceof Error ? error.message : "An unexpected error occurred";
 }
 export default api;

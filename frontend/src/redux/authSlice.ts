@@ -17,11 +17,16 @@ export const loadUser = createAsyncThunk("auth/loadUser", async (_, { rejectWith
   }
 });
 
-export const login = createAsyncThunk("auth/login", async (credentials: { email: string; password: string }) => {
-  const { data } = await api.post<TokenPair>("/auth/login", credentials);
-  localStorage.setItem("access_token", data.access_token);
-  localStorage.setItem("refresh_token", data.refresh_token);
-  return data.user;
+export const login = createAsyncThunk("auth/login", async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  try {
+    const { data } = await api.post<TokenPair>("/auth/login", credentials);
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("refresh_token", data.refresh_token);
+    return data.user;
+  } catch (err: any) {
+    const msg = err.response?.data?.detail ?? err.message ?? "Login failed";
+    return rejectWithValue(msg);
+  }
 });
 
 const slice = createSlice({
