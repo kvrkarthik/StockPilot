@@ -1,0 +1,2 @@
+"""Smart Inventory API package."""
+
