@@ -30,7 +30,7 @@ class InventoryService:
         reference_id: str | None = None,
     ) -> InventoryTransaction:
         product = self.db.scalar(
-            select(Product).where(Product.id == product_id, Product.deleted_at.is_(None)).with_for_update()
+            select(Product).where(Product.id == product_id, Product.deleted_at.is_(None)).with_for_update(of=Product)
         )
         if not product:
             raise HTTPException(404, "Product not found")

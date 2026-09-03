@@ -47,7 +47,7 @@ class OrderService:
 
     def receive_purchase(self, order_id: int, data, user_id):
         order = self.db.scalar(
-            select(PurchaseOrder).where(PurchaseOrder.id == order_id).with_for_update()
+            select(PurchaseOrder).where(PurchaseOrder.id == order_id).with_for_update(of=PurchaseOrder)
         )
         if not order or order.status in {OrderStatus.COMPLETED, OrderStatus.CANCELLED}:
             raise HTTPException(409, "Purchase order cannot be received")
@@ -90,7 +90,7 @@ class OrderService:
         subtotal = Decimal(0)
         for requested in data.items:
             product = self.db.scalar(
-                select(Product).where(Product.id == requested.product_id).with_for_update()
+                select(Product).where(Product.id == requested.product_id).with_for_update(of=Product)
             )
             if not product:
                 raise HTTPException(404, f"Product {requested.product_id} not found")
