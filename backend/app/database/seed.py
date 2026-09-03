@@ -85,3 +85,11 @@ def seed_database(db: Session) -> None:
             db.add(Category(name=name, description=description))
 
     db.commit()
+
+
+if __name__ == "__main__":
+    from app.database.session import SessionLocal
+
+    with SessionLocal() as session:
+        seed_database(session)
+        print("Database seeded successfully!")
