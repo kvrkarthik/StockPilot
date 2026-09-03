@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import hash_password
-from app.models.entities import Permission, Role, Setting, User
+from app.models.entities import Category, Permission, Role, Setting, User
 
 PERMISSIONS = [
     "products.write",
@@ -21,7 +21,13 @@ PERMISSIONS = [
 ROLE_PERMISSIONS = {
     "Admin": {"*"},
     "Manager": set(PERMISSIONS) - {"users.write"},
-    "Inventory Staff": {"products.write", "inventory.write", "purchases.write", "purchases.receive", "reports.read"},
+    "Inventory Staff": {
+        "products.write",
+        "inventory.write",
+        "purchases.write",
+        "purchases.receive",
+        "reports.read",
+    },
     "Sales Staff": {"sales.write", "reports.read"},
     "Viewer": {"reports.read"},
 }
@@ -36,6 +42,7 @@ def seed_database(db: Session) -> None:
             db.add(permission)
             db.flush()
         permissions[code] = permission
+
     roles = {}
     for name, codes in ROLE_PERMISSIONS.items():
         role = db.scalar(select(Role).where(Role.name == name))
@@ -45,7 +52,11 @@ def seed_database(db: Session) -> None:
             db.flush()
         role.permissions = [permissions[code] for code in codes]
         roles[name] = role
-    admin = db.scalar(select(User).where(User.email == settings.first_admin_email.lower()))
+
+    admin = db.scalar(
+        select(User).where(User.email == settings.first_admin_email.lower())
+    )
+
     if not admin:
         db.add(
             User(
@@ -55,7 +66,22 @@ def seed_database(db: Session) -> None:
                 role=roles["Admin"],
             )
         )
+
     if not db.get(Setting, 1):
         db.add(Setting(id=1))
-    db.commit()
 
+    # Seed default product categories
+    categories = [
+        ("Food & Beverages", "Food, drinks, and consumable products"),
+        ("Personal Care", "Personal hygiene and care products"),
+        ("Cleaning", "Cleaning and household maintenance products"),
+        ("Stationery", "Office and stationery products"),
+        ("Electronics", "Electronic and electrical products"),
+    ]
+
+    for name, description in categories:
+        category = db.scalar(select(Category).where(Category.name == name))
+        if not category:
+            db.add(Category(name=name, description=description))
+
+    db.commit()
