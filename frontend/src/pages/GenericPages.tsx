@@ -172,7 +172,13 @@ export function ResourcePage({ title, endpoint, description }: { title: string; 
                     .slice(0, 6)
                     .map(([k, v]) => (
                       <td key={k}>
-                        {v == null ? "—" : typeof v === "object" ? (v.name || v.code || JSON.stringify(v)) : String(v)}
+                        {v == null
+                          ? "—"
+                          : typeof v === "object"
+                          ? (v.name || v.code || JSON.stringify(v))
+                          : typeof v === "string" && /^\d{4}-\d{2}-\d{2}T/.test(v)
+                          ? new Date(v).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })
+                          : String(v)}
                       </td>
                     ))}
                 </tr>
